@@ -1,0 +1,14 @@
+# conkyrc file for dzen
+###
+
+background no
+out_to_console yes
+out_to_x no
+override_utf8_locale yes
+update_interval 1
+total_run_times 0
+mpd_host 192.168.0.5
+mpd_port 6600
+
+TEXT
+Batt: [${battery_percent}%]  Cpu: ^fg(\#909090)${cpu cpu1}% ${cpu cpu2}%^fg()  Mem: ^fg(\#909090)${memperc}%^fg()  Net: ^fg(\#909090)${downspeedf wlan0} / ${upspeedf wlan0}^fg()  ${time %a %b %d %H:%M}  
