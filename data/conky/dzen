@@ -11,4 +11,4 @@ mpd_host 192.168.0.5
 mpd_port 6600
 
 TEXT
-Batt: [${battery_percent}%]  Cpu: ^fg(\#909090)${cpu cpu1}% ${cpu cpu2}%^fg()  Mem: ^fg(\#909090)${memperc}%^fg()  Net: ^fg(\#909090)${downspeedf wlan0} / ${upspeedf wlan0}^fg()  ${time %a %b %d %H:%M}  
+Vol: ${exec ~/scripts/vol.sh}  Bat: [${battery_percent}%]  Cpu: ^fg(\#909090)${cpu cpu1}% ${cpu cpu2}%^fg()  Mem: ^fg(\#909090)${memperc}%^fg()  Net: ^fg(\#909090)${downspeedf wlan0} / ${upspeedf wlan0}^fg()  ${time %a %b %d %H:%M}  

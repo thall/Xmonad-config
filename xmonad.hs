@@ -15,6 +15,9 @@ import XMonad.Hooks.ManageHelpers
 
 import XMonad.Layout.ThreeColumns
 import XMonad.Layout.NoBorders
+import XMonad.Layout.ResizableTile
+import XMonad.Layout.LayoutCombinators hiding ( (|||) )
+import XMonad.Layout.Named
 
 import Data.Monoid
 import System.Exit
@@ -27,7 +30,8 @@ import qualified Data.Map        as M
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal      = "xterm"
+myTerminal          = "xterm"
+myTerminalStartup   = " -e \"archey -c green;bash;\"" 
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -77,14 +81,20 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
 
-     -- Rotate through the available layout algorithms
+    -- Rotate through the available layout algorithms
     , ((modm,               xK_space ), sendMessage NextLayout)
+
+    -- Lock screen
+    , ((modm,               xK_s     ), spawn "xscreensaver-command -lock")
 
     --  Reset the layouts on the current workspace to default
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
 
     -- Resize viewed windows to the correct size
     , ((modm,               xK_n     ), refresh)
+
+    -- Change layout to fullscreen
+    , ((modm,               xK_b     ), sendMessage $ JumpToLayout "full")
 
     -- Move focus to the next window
     , ((modm,               xK_Tab   ), windows W.focusDown)
@@ -107,12 +117,18 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Swap the focused window with the previous window
     , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
 
-    -- Shrink the master area
+    -- Shrink the master area verticaly
     , ((modm,               xK_h     ), sendMessage Shrink)
 
-    -- Expand the master area
+    -- Expand the master area verticaly
     , ((modm,               xK_l     ), sendMessage Expand)
 
+    -- Expand the master area horizontal
+    , ((modm,               xK_u     ), sendMessage MirrorExpand)
+
+    -- Shrink the master area horizontal
+    , ((modm,               xK_d     ), sendMessage MirrorShrink)
+ 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
 
@@ -183,14 +199,21 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = avoidStruts (tiled ||| Mirror tiled ||| threeCol) 
-            ||| noBorders Full
+-- Horizontal split
+-- named "Horizontal" (smartBorders $ Mirror resizeTiled)
+
+myLayout = avoidStruts (
+                named "default" (smartBorders resizeTiled) 
+            ||| named "three" (smartBorders threeCol) 
+            ||| named "borderFull" (smartBorders Full)
+           )||| named "full" (noBorders Full)
   where
      -- default tiling algorithm partitions the screen into two panes
      
      threeCol    = ThreeCol nmaster delta ratio
 
      tiled   = Tall nmaster delta ratio
+     resizeTiled = ResizableTall nmaster delta ratio []
 
      -- The default number of windows in the master pane
      nmaster = 1
@@ -223,7 +246,7 @@ myManageHook = (composeAll . concat $
   , [ className =? c   --> doShift "2:dev"  | c <- myDevs]
   , [ className =? c   --> doShift "3:chat" | c <- myChat]
   , [ className =? c   --> doShift "4:mp3"  | c <- myMp3s]
-  , [ className =? c   --> doCenterFloat          | c <- myFloats]
+  , [ className =? c   --> doCenterFloat    | c <- myFloats]
   ])
 
   where
@@ -307,7 +330,7 @@ main = do
 
   xmonad $ withUrgencyHook NoUrgencyHook $ defaultConfig {
       -- simple stuff
-        terminal           = myTerminal,
+        terminal           = myTerminal ++ myTerminalStartup,
         focusFollowsMouse  = myFocusFollowsMouse,
         borderWidth        = myBorderWidth,
         modMask            = myModMask,
