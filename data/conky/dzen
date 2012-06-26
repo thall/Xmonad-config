@@ -4,11 +4,21 @@
 background no
 out_to_console yes
 out_to_x no
-override_utf8_locale yes
+#override_utf8_locale yes
 update_interval 1
 total_run_times 0
-mpd_host 192.168.0.5
-mpd_port 6600
+#mpd_host 192.168.0.5
+#mpd_port 6600
+
+default_color 909090
+color0 FFFFFF
+color1 909090
 
 TEXT
-Vol: ${exec ~/scripts/vol.sh}  Bat: [${battery_percent}%]  Cpu: ^fg(\#909090)${cpu cpu1}% ${cpu cpu2}%^fg()  Mem: ^fg(\#909090)${memperc}%^fg()  Net: ^fg(\#909090)${downspeedf wlan0} / ${upspeedf wlan0}^fg()  ${time %a %b %d %H:%M}  
+Chat:  ^fg(color0)${exec ~/scripts/pidgin_circle_swe.sh}^fg()  \
+Batt:  ^fg(color0)${battery_percent}%^fg()  \
+vol: ^fg(color0)${exec ~/scripts/vol.sh}^fg()  \
+Cpu: ^fg(color0)${cpu cpu1}% ${cpu cpu2}%^fg()  \
+Mem: ^fg(color0)${memperc}%^fg()  \
+Net: ^fg(color0)${downspeedf wlan0}^fg() /^fg(color0) ${upspeedf wlan0}  \
+${time %a %d %b %H:%M}  

@@ -19,6 +19,10 @@ import XMonad.Layout.ResizableTile
 import XMonad.Layout.LayoutCombinators hiding ( (|||) )
 import XMonad.Layout.Named
 
+-- Special keys
+import XMonad.Util.EZConfig
+import Graphics.X11.ExtraTypes.XF86  
+
 import Data.Monoid
 import System.Exit
 import System.IO (hPutStrLn)
@@ -35,7 +39,7 @@ myTerminalStartup   = " -e \"archey -c green;bash;\""
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
-myFocusFollowsMouse = True
+myFocusFollowsMouse = False
 
 -- Width of the window border in pixels.
 --
@@ -57,7 +61,9 @@ myModMask       = mod1Mask
 --
 -- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
 --
-myWorkspaces    = ["1:web","2:dev","3:chat", "4:mp3"] ++ map show [5..9]
+myWorkspaces    = ["1:web","2:dev","3:chat", "4:mp3"] ++ 
+                  map show [5..8] ++
+                  ["9:msg"]
 
 -- Border colors for unfocused and focused windows, respectively.
 --
@@ -169,6 +175,12 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
         | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
+    --
+    -- Media keys, special bindings
+    ++ 
+    [ ((modm, xF86XK_AudioNext), spawn "/home/thall/scripts/spotify_next.sh")
+    , ((modm, xF86XK_AudioPrev), spawn "/home/thall/scripts/spotify_prev.sh")
+    ] 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
 --
@@ -287,7 +299,7 @@ myLogHook h = dynamicLogWithPP  $ defaultPP
   ,  ppHiddenNoWindows  = dzenColor "606060" "" . pad
   ,  ppLayout           = dzenColor "#909090" "" . pad
   ,  ppUrgent           = dzenColor "#ff0000" "" . pad . dzenStrip
-  ,  ppTitle            = shorten 100
+  ,  ppTitle            = shorten 100 
   ,  ppWsSep            = ""
   ,  ppSep              = "  "
   ,  ppOutput           = hPutStrLn h  
@@ -307,15 +319,15 @@ myStartupHook = return ()
 -- Bars
 myLeftBar :: DzenConf
 myLeftBar = defaultDzen
-  { width   = Just $ Percent 60
+  { width   = Just $ Percent 55
   , fgColor = Just "#909090"
   , bgColor = Just "#303030"
   }
 
 myRightBar :: DzenConf
 myRightBar = myLeftBar 
-  { xPosition = Just $ Percent 60
-  , width     = Just $ Percent 40
+  { xPosition = Just $ Percent 55
+  , width     = Just $ Percent 45
   , alignment = Just RightAlign
   }
 ------------------------------------------------------------------------
