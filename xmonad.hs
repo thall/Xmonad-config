@@ -4,13 +4,12 @@
 -- Normally, you'd only override those defaults you care about.
 --
 
-import Dzen
 
 import XMonad
 import XMonad.ManageHook
-import XMonad.Hooks.DynamicLog hiding (dzen)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageHelpers
 
 import XMonad.Layout.ThreeColumns
@@ -18,6 +17,8 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.LayoutCombinators hiding ( (|||) )
 import XMonad.Layout.Named
+
+import XMonad.Util.Run (spawnPipe)
 
 -- Special keys
 import XMonad.Util.EZConfig
@@ -34,8 +35,8 @@ import qualified Data.Map        as M
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal          = "xterm"
-myTerminalStartup   = " -e \"archey -c green;bash;\"" 
+myTerminal          = "urxvt"
+-- myTerminalStartup   = " -e \"archey -c green;bash;\"" 
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -67,8 +68,8 @@ myWorkspaces    = ["1:web","2:dev","3:chat", "4:mp3"] ++
 
 -- Border colors for unfocused and focused windows, respectively.
 --
-myNormalBorderColor  = "#dddddd"
-myFocusedBorderColor = "#990000"
+myNormalBorderColor  = "#586e75"
+myFocusedBorderColor = "#dc322f"
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -100,7 +101,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_n     ), refresh)
 
     -- Change layout to fullscreen
-    , ((modm,               xK_b     ), sendMessage $ JumpToLayout "full")
+--    , ((modm,               xK_b     ), sendMessage $ JumpToLayout "full")
 
     -- Move focus to the next window
     , ((modm,               xK_Tab   ), windows W.focusDown)
@@ -148,13 +149,13 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Use this binding with avoidStruts from Hooks.ManageDocks.
     -- See also the statusBar function from Hooks.DynamicLog.
     --
-    -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
+    , ((modm              , xK_b     ), sendMessage ToggleStruts)
 
     -- Quit xmonad
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "killall conky dzen2; xmonad --recompile; xmonad --restart")
+    , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
     ]
     ++
 
@@ -164,7 +165,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --
     [((m .|. modm, k), windows $ f i)
         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
     ++
 
     --
@@ -177,10 +178,6 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     --
     -- Media keys, special bindings
-    ++ 
-    [ ((modm, xF86XK_AudioNext), spawn "/home/thall/scripts/spotify_next.sh")
-    , ((modm, xF86XK_AudioPrev), spawn "/home/thall/scripts/spotify_prev.sh")
-    ] 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
 --
@@ -289,75 +286,41 @@ myEventHook = mempty
 
 ------------------------------------------------------------------------
 -- Status bars and logging
-
--- Perform an arbitrary action on each internal state change or X event.
--- See the 'XMonad.Hooks.DynamicLog' extension for examples.
---
-myLogHook h = dynamicLogWithPP  $ defaultPP
-  {  ppCurrent          = dzenColor "#303030" "#909090" . pad
-  ,  ppHidden           = dzenColor "#909090" "" . pad
-  ,  ppHiddenNoWindows  = dzenColor "606060" "" . pad
-  ,  ppLayout           = dzenColor "#909090" "" . pad
-  ,  ppUrgent           = dzenColor "#ff0000" "" . pad . dzenStrip
-  ,  ppTitle            = shorten 100 
-  ,  ppWsSep            = ""
-  ,  ppSep              = "  "
-  ,  ppOutput           = hPutStrLn h  
-  }  
-
-------------------------------------------------------------------------
--- Startup hook
-
--- Perform an arbitrary action each time xmonad starts or is restarted
--- with mod-q.  Used by, e.g., XMonad.Layout.PerWorkspace to initialize
--- per-workspace layout choices.
---
--- By default, do nothing.
-myStartupHook = return ()
+myPP  = xmobarPP { ppCurrent = xmobarColor "#dd0000" "" . wrap "<" ">" }
 
 
--- Bars
-myLeftBar :: DzenConf
-myLeftBar = defaultDzen
-  { width   = Just $ Percent 55
-  , fgColor = Just "#909090"
-  , bgColor = Just "#303030"
-  }
-
-myRightBar :: DzenConf
-myRightBar = myLeftBar 
-  { xPosition = Just $ Percent 55
-  , width     = Just $ Percent 45
-  , alignment = Just RightAlign
-  }
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
 
 -- Run xmonad with the settings you specify. No need to modify this.
 --
 main = do
-  d <- spawnDzen myLeftBar
-
-  spawnToDzen "conky -c ~/.xmonad/data/conky/dzen" myRightBar
-
+  xmoproc <- spawnPipe "/usr/bin/xmobar /home/tall/.xmobarrc"
   xmonad $ withUrgencyHook NoUrgencyHook $ defaultConfig {
-      -- simple stuff
-        terminal           = myTerminal ++ myTerminalStartup,
-        focusFollowsMouse  = myFocusFollowsMouse,
-        borderWidth        = myBorderWidth,
-        modMask            = myModMask,
-        workspaces         = myWorkspaces,
-        normalBorderColor  = myNormalBorderColor,
-        focusedBorderColor = myFocusedBorderColor,
+    -- simple stuff
+    terminal           = myTerminal, -- ++ myTerminalStartup,
+    focusFollowsMouse  = myFocusFollowsMouse,
+    borderWidth        = myBorderWidth,
+    modMask            = myModMask,
+    workspaces         = myWorkspaces,
+    normalBorderColor  = myNormalBorderColor,
+    focusedBorderColor = myFocusedBorderColor,
 
-      -- key bindings
-        keys               = myKeys,
-        mouseBindings      = myMouseBindings,
+    -- key bindings
+    keys               = myKeys,
+    mouseBindings      = myMouseBindings,
 
-      -- hooks, layouts
-        layoutHook         = myLayout,
-        manageHook         = myManageHook,
-        handleEventHook    = myEventHook,
-        logHook            = myLogHook d,
-        startupHook        = myStartupHook
-    }
+    -- hooks, layouts
+    layoutHook         = avoidStruts $ myLayout,
+    manageHook         = manageDocks <+> myManageHook,
+    logHook            = dynamicLogWithPP xmobarPP 
+      { ppOutput = hPutStrLn xmoproc
+      , ppTitle = xmobarColor "green" "" . shorten 50
+      },
+    handleEventHook    = myEventHook
+  }
+
+
+
+
+-- xmonad =<< statusBar myBar myPP toggleStrutsKey myConfig
