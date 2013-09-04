@@ -3,12 +3,9 @@
 --
 -- Normally, you'd only override those defaults you care about.
 --
-
-import Dzen
-
 import XMonad
 import XMonad.ManageHook
-import XMonad.Hooks.DynamicLog hiding (dzen)
+import XMonad.Hooks.DynamicLog 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.ManageHelpers
@@ -22,6 +19,8 @@ import XMonad.Layout.Named
 -- Special keys
 import XMonad.Util.EZConfig
 import Graphics.X11.ExtraTypes.XF86  
+import Graphics.X11 (noModMask, shiftMask)
+
 
 import Data.Monoid
 import System.Exit
@@ -33,9 +32,8 @@ import qualified Data.Map        as M
 
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
---
-myTerminal          = "xterm"
-myTerminalStartup   = " -e \"archey -c green;bash;\"" 
+myTerminal          = "urxvt"
+-- myTerminalStartup   = " -e \"archey -c green;bash;\"" 
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -61,14 +59,16 @@ myModMask       = mod1Mask
 --
 -- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
 --
-myWorkspaces    = ["1:web","2:dev","3:chat", "4:mp3"] ++ 
-                  map show [5..8] ++
-                  ["9:msg"]
+myWorkspaces    =  ["1:web","2:dev"]
+                ++ map show [3..7] 
+                ++ ["8:chat","9:msg"]
 
 -- Border colors for unfocused and focused windows, respectively.
---
-myNormalBorderColor  = "#dddddd"
-myFocusedBorderColor = "#990000"
+myNormalBorderColor  = "#002b36"
+myFocusedBorderColor = "#dc322f"
+
+lal :: IO ()
+lal = writeFile "/home/thall/xmonad-inside.txt" "TESTING" 
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -91,7 +91,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_space ), sendMessage NextLayout)
 
     -- Lock screen
-    , ((modm,               xK_s     ), spawn "xscreensaver-command -lock")
+    --, ((modm,               xK_s     ), spawn "xscreensaver-command -lock")
 
     --  Reset the layouts on the current workspace to default
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
@@ -154,7 +154,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "killall conky dzen2; xmonad --recompile; xmonad --restart")
+    , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
+
+    -- Haskell functions
+    , ((modm              , xK_o     ), io lal)
     ]
     ++
 
@@ -178,8 +181,16 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --
     -- Media keys, special bindings
     ++ 
-    [ ((modm, xF86XK_AudioNext), spawn "/home/thall/scripts/spotify_next.sh")
-    , ((modm, xF86XK_AudioPrev), spawn "/home/thall/scripts/spotify_prev.sh")
+    [ ((noModMask, xF86XK_AudioNext), 
+        spawn "/home/thall/bin/control_spotify next")
+    , ((noModMask, xF86XK_AudioPrev), 
+        spawn "/home/thall/bin/control_spotify prev")
+    , ((noModMask, xF86XK_AudioPlay), 
+        spawn "/home/thall/bin/control_spotify play_pause")
+    , ((noModMask, xF86XK_Eject), 
+        spawn "xscreensaver-command -lock")
+    , ((noModMask, xF86XK_LaunchB ), 
+        spawn "/home/thall/bin/toggle_output")
     ] 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -214,11 +225,11 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- Horizontal split
 -- named "Horizontal" (smartBorders $ Mirror resizeTiled)
 
-myLayout = avoidStruts (
-                named "default" (smartBorders resizeTiled) 
+myLayout = avoidStruts $
+                named "tall" (smartBorders resizeTiled) 
             ||| named "three" (smartBorders threeCol) 
             ||| named "borderFull" (smartBorders Full)
-           )||| named "full" (noBorders Full)
+           
   where
      -- default tiling algorithm partitions the screen into two panes
      
@@ -256,17 +267,16 @@ myManageHook = (composeAll . concat $
   [ [ resource  =? r   --> doIgnore | r <- myIgnores] -- my ignores
   , [ className =? c   --> doShift "1:web"  | c <- myWebs]
   , [ className =? c   --> doShift "2:dev"  | c <- myDevs]
-  , [ className =? c   --> doShift "3:chat" | c <- myChat]
-  , [ className =? c   --> doShift "4:mp3"  | c <- myMp3s]
+  , [ className =? c   --> doShift "8:chat" | c <- myChat]
   , [ className =? c   --> doCenterFloat    | c <- myFloats]
   ])
 
   where
-  myIgnores = ["desktop_window", "kdesktop"]
+  myIgnores = []
   myWebs    = ["Google-chrome", "Chromium", "Firefox"]
-  myDevs    = ["Threadscope"]
+  myDevs    = []
   myChat    = ["Pidgin", "Mangler"]
-  myMp3s    = ["Spotify"]
+  myMp3s    = []
   myFloats  = [] --myChat
 
 {-
@@ -293,18 +303,6 @@ myEventHook = mempty
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
-myLogHook h = dynamicLogWithPP  $ defaultPP
-  {  ppCurrent          = dzenColor "#303030" "#909090" . pad
-  ,  ppHidden           = dzenColor "#909090" "" . pad
-  ,  ppHiddenNoWindows  = dzenColor "606060" "" . pad
-  ,  ppLayout           = dzenColor "#909090" "" . pad
-  ,  ppUrgent           = dzenColor "#ff0000" "" . pad . dzenStrip
-  ,  ppTitle            = shorten 100 
-  ,  ppWsSep            = ""
-  ,  ppSep              = "  "
-  ,  ppOutput           = hPutStrLn h  
-  }  
-
 ------------------------------------------------------------------------
 -- Startup hook
 
@@ -313,36 +311,19 @@ myLogHook h = dynamicLogWithPP  $ defaultPP
 -- per-workspace layout choices.
 --
 -- By default, do nothing.
-myStartupHook = return ()
+-- myStartupHook = return ()
 
 
--- Bars
-myLeftBar :: DzenConf
-myLeftBar = defaultDzen
-  { width   = Just $ Percent 55
-  , fgColor = Just "#909090"
-  , bgColor = Just "#303030"
-  }
-
-myRightBar :: DzenConf
-myRightBar = myLeftBar 
-  { xPosition = Just $ Percent 55
-  , width     = Just $ Percent 45
-  , alignment = Just RightAlign
-  }
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
 
 -- Run xmonad with the settings you specify. No need to modify this.
 --
 main = do
-  d <- spawnDzen myLeftBar
 
-  spawnToDzen "conky -c ~/.xmonad/data/conky/dzen" myRightBar
-
-  xmonad $ withUrgencyHook NoUrgencyHook $ defaultConfig {
+  xmonad =<< xmobar defaultConfig {
       -- simple stuff
-        terminal           = myTerminal ++ myTerminalStartup,
+        terminal           = myTerminal, --  ++ myTerminalStartup,
         focusFollowsMouse  = myFocusFollowsMouse,
         borderWidth        = myBorderWidth,
         modMask            = myModMask,
@@ -357,7 +338,5 @@ main = do
       -- hooks, layouts
         layoutHook         = myLayout,
         manageHook         = myManageHook,
-        handleEventHook    = myEventHook,
-        logHook            = myLogHook d,
-        startupHook        = myStartupHook
+        handleEventHook    = myEventHook
     }
