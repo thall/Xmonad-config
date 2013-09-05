@@ -1,7 +1,5 @@
-PWD = `pwd`
-
 all:
-	ln -s $(PWD) ${HOME}/.xmonad
+	ln -s `pwd` ${HOME}/.xmonad
 
 clean:
 	rm ${HOME}/.xmonad

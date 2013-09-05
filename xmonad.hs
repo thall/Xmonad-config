@@ -8,6 +8,7 @@ import XMonad.ManageHook
 import XMonad.Hooks.DynamicLog 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageHelpers
 
 import XMonad.Layout.ThreeColumns
@@ -15,6 +16,8 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.LayoutCombinators hiding ( (|||) )
 import XMonad.Layout.Named
+
+import XMonad.Util.Run (spawnPipe)
 
 -- Special keys
 import XMonad.Util.EZConfig
@@ -100,7 +103,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_n     ), refresh)
 
     -- Change layout to fullscreen
-    , ((modm,               xK_b     ), sendMessage $ JumpToLayout "full")
+--    , ((modm,               xK_b     ), sendMessage $ JumpToLayout "full")
 
     -- Move focus to the next window
     , ((modm,               xK_Tab   ), windows W.focusDown)
@@ -148,16 +151,13 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Use this binding with avoidStruts from Hooks.ManageDocks.
     -- See also the statusBar function from Hooks.DynamicLog.
     --
-    -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
+    , ((modm              , xK_b     ), sendMessage ToggleStruts)
 
     -- Quit xmonad
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
-
-    -- Haskell functions
-    , ((modm              , xK_o     ), io lal)
     ]
     ++
 
@@ -167,7 +167,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --
     [((m .|. modm, k), windows $ f i)
         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
     ++
 
     --
