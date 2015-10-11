@@ -298,6 +298,10 @@ myManageHook = composeAll
 myEventHook = mempty
 
 ------------------------------------------------------------------------
+-- ClickJustFocuses
+myClickJustFocuses = False
+
+------------------------------------------------------------------------
 -- Status bars and logging
 
 -- Perform an arbitrary action on each internal state change or X event.
@@ -338,5 +342,6 @@ main = do
       -- hooks, layouts
         layoutHook         = myLayout,
         manageHook         = myManageHook,
-        handleEventHook    = myEventHook
+        handleEventHook    = myEventHook,
+        clickJustFocuses   = myClickJustFocuses
     }
