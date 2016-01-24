@@ -181,16 +181,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --
     -- Media keys, special bindings
     ++ 
-    [ ((noModMask, xF86XK_AudioNext), 
-        spawn "/home/thall/bin/control_spotify next")
-    , ((noModMask, xF86XK_AudioPrev), 
-        spawn "/home/thall/bin/control_spotify prev")
-    , ((noModMask, xF86XK_AudioPlay), 
-        spawn "/home/thall/bin/control_spotify play_pause")
-    , ((noModMask, xF86XK_Eject), 
-        spawn "xscreensaver-command -lock")
-    , ((noModMask, xF86XK_LaunchB ), 
-        spawn "/home/thall/bin/toggle_output")
+    [ ((noModMask, xF86XK_MonBrightnessUp),
+        spawn "light -A 10")
+    , ((noModMask, xF86XK_MonBrightnessDown),
+        spawn "light -U 10")
     ] 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
